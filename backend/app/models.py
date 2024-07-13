@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
-"Modelos base de datos"
 Base = declarative_base()
 
 class User(Base):
@@ -12,14 +11,14 @@ class User(Base):
     passwordEncrypt = Column(String, nullable=False)
     nombre = Column(String, nullable=False)
     apellido = Column(String, nullable=False)
-    telefono = Column(Integer, nullable=True)
+    telefono = Column(String, nullable=True)  # Cambiado a String
     fechaNacimiento = Column(Date, nullable=True)
     nombreUsuario = Column(String, nullable=False, unique=True)
     biografia = Column(Text, nullable=True)
-    genero = Column(Integer, ForeignKey('genero.idGenero'), nullable=False)
+    genero = Column(Integer, ForeignKey('genero.idGenero'), nullable=False)  # Definir ForeignKey
     imgPerfilPath = Column(String, nullable=True)
-    rolUsuario = Column(Integer, ForeignKey('rol.idRol'), nullable=False)
-    
+    rolUsuario = Column(Integer, ForeignKey('rol.idRol'), nullable=False)  # Definir ForeignKey
+
     genero_rel = relationship('Genero', back_populates='usuarios')
     rol_rel = relationship('Rol', back_populates='usuarios')
     aportes = relationship('Aporte', back_populates='usuario')
