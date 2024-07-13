@@ -4,3 +4,6 @@ sqlalchemy
 databases
 asyncpg
 psycopg2-binary
+pyjwt
+passlib[bcrypt]
+python-dotenv

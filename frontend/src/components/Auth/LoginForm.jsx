@@ -1,62 +1,86 @@
-// src/components/Auth/LoginForm.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import { login } from "../../services/auth";
+import { login } from "../../services/auth";
 
 function LoginForm() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async (event) => {
-    event.preventDefault();
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      await login(username, password);
-      setMessage(`Welcome ${username}`);
-      navigate("/");
+      const response = await login(formData);
+      localStorage.setItem("token", response.access_token);
+      setMessage("Inicio de sesión exitoso");
+      navigate("/home");
     } catch (error) {
-      setMessage("Login failed");
+      if (error.response && error.response.data) {
+        setMessage(
+          `Error en el inicio de sesión: ${error.response.data.detail}`
+        );
+      } else {
+        setMessage("Error en el inicio de sesión");
+      }
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-4xl font-bold text-white mb-6 text-yellow-500">
-        GoldBrain
-      </h1>
-      <form onSubmit={handleLogin} className="bg-white p-6 w-80">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white">
+      <h1 className="text-4xl font-bold text-yellow-500 mb-6">GoldBrain</h1>
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded">
+        {message && <p className="text-red-500">{message}</p>}
+
         <div className="mb-4">
-          <label className="block text-gray-700">Correo electronico</label>
+          <label htmlFor="email" className="block text-gray-700 mb-2">
+            Correo electrónico
+          </label>
           <input
-            type="text"
+            type="email"
+            id="email"
+            name="email"
+            placeholder="ejemplo@ejemplo.com"
             className="w-full px-3 py-2 border rounded focus:outline-none"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={formData.email}
+            onChange={handleChange}
+            required
           />
         </div>
+
         <div className="mb-4">
-          <label className="block text-gray-700">Contraseña</label>
+          <label htmlFor="password" className="block text-gray-700 mb-2">
+            Contraseña
+          </label>
           <input
             type="password"
+            id="password"
+            name="password"
+            placeholder="Contraseña"
             className="w-full px-3 py-2 border rounded focus:outline-none"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={handleChange}
+            required
           />
         </div>
+
         <button
           type="submit"
           className="w-full bg-yellow-500 text-white py-2 rounded"
         >
           Iniciar sesión
         </button>
-        {message && <p className="mt-4 text-red-500">{message}</p>}
-        <div className="mt-4 text-center">
-          <a href="/forgot-password" className="text-yellow-500 underline">
-            He olvidado mi contraseña
-          </a>
-        </div>
-        <div className="mt-2 text-center text-black">
+
+        <div className="mt-4 text-center text-black">
           ¿No tienes cuenta?{" "}
           <a href="/register" className="text-yellow-500 underline">
             Regístrate

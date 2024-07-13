@@ -1,14 +1,22 @@
-'''Configuración de la base de datos'''
-# backend/app/database.py
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from databases import Database
+from dotenv import load_dotenv
 
-# url de la base de datos base
-Database_URL = "postgresql://postgres:admin@localhost/GoldBrain"
+load_dotenv()  # Cargar las variables de entorno desde el archivo .env
 
-engine = create_engine(Database_URL)
+DATABASE_URL = os.getenv("DATABASE_URL")  # Asegúrate de que sea DATABASE_URL
+
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
-database = Database(Database_URL)
+database = Database(DATABASE_URL)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
