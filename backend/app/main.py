@@ -1,10 +1,11 @@
+from typing import List
 import uvicorn
 from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from . import crud, models, schemas, auth
-from .database import SessionLocal, engine, database
+from .database import SessionLocal, engine, database, get_db
 from datetime import timedelta
 
 models.Base.metadata.create_all(bind=engine)
@@ -59,6 +60,15 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(auth.get_db)):
 @app.get("/users/me", response_model=schemas.User)
 async def read_users_me(current_user: schemas.User = Depends(auth.get_current_active_user)):
     return current_user
+
+@app.get("/categorias/", response_model=List[schemas.Categoria])
+def read_categorias(db: Session = Depends(get_db)):
+    categorias = crud.get_categorias(db)
+    return categorias
+
+@app.post("/cursos/", response_model=schemas.Curso)
+def create_curso(curso: schemas.CursoCreate, db: Session = Depends(get_db)):
+    return crud.create_curso(db=db, curso=curso)
 
 if __name__ == "__main__":
     uvicorn.run("backend.app.main:app", host="0.0.0.0", port=8000, reload=True)

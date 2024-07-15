@@ -1,14 +1,30 @@
-// src/components/Layout/Header.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaUser, FaChevronDown, FaChevronUp } from "react-icons/fa";
-
-const username = "Usuario"; // Este sería dinámico en una aplicación real
+import { useNavigate } from "react-router-dom";
 
 function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const [username, setUsername] = useState("Usuario");
+  const [rolUsuario, setRolUsuario] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setUsername(`${user.nombre} ${user.apellido}`);
+      setRolUsuario(user.rolUsuario);
+    }
+  }, []);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
   };
 
   return (
@@ -47,6 +63,14 @@ function Header() {
               >
                 Mi aprendizaje
               </a>
+              {rolUsuario === 1 || rolUsuario === 3 ? (
+                <a
+                  href="/admin/add-course"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
+                >
+                  Crear curso
+                </a>
+              ) : null}
               <a
                 href="/advice"
                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
@@ -59,12 +83,12 @@ function Header() {
               >
                 Ayuda
               </a>
-              <a
-                href="/logout"
-                className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-200"
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-200"
               >
                 Cerrar sesión
-              </a>
+              </button>
             </div>
           </div>
         )}

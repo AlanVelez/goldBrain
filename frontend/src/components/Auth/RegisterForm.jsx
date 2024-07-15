@@ -10,13 +10,13 @@ function RegisterForm() {
     confirmPassword: "",
     nombre: "",
     apellido: "",
-    nombreUsuario: "",
+    nombreUsuario: "", // Este campo ya no es necesario
     genero: "",
     telefono: "",
     fechaNacimiento: "",
-    biografia: "", // Inicializar como cadena vacía
-    imgPerfilPath: "", // Inicializar como cadena vacía
-    rolUsuario: null, // Inicializar como null
+    biografia: "",
+    imgPerfilPath: "",
+    rolUsuario: 2,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -24,10 +24,12 @@ function RegisterForm() {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [name]: value,
+      ...(name === "correo" ? { nombreUsuario: value } : {}), // Asignar correo a nombreUsuario automáticamente
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -40,7 +42,6 @@ function RegisterForm() {
     const userData = { ...formData };
     delete userData.confirmPassword;
 
-    // Si biografia o imgPerfilPath son cadenas vacías, configúralos como null
     if (userData.biografia === "") userData.biografia = null;
     if (userData.imgPerfilPath === "") userData.imgPerfilPath = null;
     if (userData.rolUsuario === "") userData.rolUsuario = null;

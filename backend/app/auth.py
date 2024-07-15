@@ -9,8 +9,10 @@ from . import schemas, crud
 from .database import SessionLocal
 from dotenv import load_dotenv
 
+#Ruta de archivo env
+dotenv_path = os.path.join(os.path.dirname(__file__), '../../.env')
 # Cargar las variables de entorno desde el archivo .env
-load_dotenv()
+load_dotenv(dotenv_path)
 
 # Configuración de variables
 SECRET_KEY = os.getenv("SECRET_KEY")
