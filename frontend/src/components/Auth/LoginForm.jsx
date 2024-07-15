@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../../services/auth";
+import { login, getCurrentUser } from "../../services/auth";
 
 function LoginForm() {
   const [formData, setFormData] = useState({
@@ -21,9 +21,16 @@ function LoginForm() {
     e.preventDefault();
     try {
       const response = await login(formData);
+      console.log("Token recibido:", response.access_token);
       localStorage.setItem("token", response.access_token);
       setMessage("Inicio de sesión exitoso");
-      navigate("/home");
+
+      // Obtener datos del usuario
+      const user = await getCurrentUser();
+      console.log("Usuario recibido:", user);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      navigate("/home"); // Redirigir a /home
     } catch (error) {
       if (error.response && error.response.data) {
         setMessage(

@@ -51,9 +51,11 @@ export const getCurrentUser = async () => {
         'Authorization': `Bearer ${token}`
       }
     });
+    console.log("Current user:", response.data);
     return response.data;
   } catch (error) {
     console.error("Get current user error:", error.response?.data || error.message);
     throw error;
   }
 };
+

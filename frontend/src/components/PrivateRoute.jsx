@@ -1,12 +1,17 @@
-// src/components/PrivateRoute.jsx
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import Layout from "./Layout/Layout";
 
 const PrivateRoute = () => {
-  const { user } = useAuth();
+  const token = localStorage.getItem("token");
 
-  return user ? <Outlet /> : <Navigate to="/login" />;
+  return token ? (
+    <Layout>
+      <Outlet />
+    </Layout>
+  ) : (
+    <Navigate to="/login" />
+  );
 };
 
 export default PrivateRoute;

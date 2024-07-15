@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
 from passlib.context import CryptContext
+from datetime import date
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -20,7 +22,7 @@ def create_user(db: Session, user: schemas.UserCreate):
         passwordEncrypt=hashed_password,
         nombre=user.nombre,
         apellido=user.apellido,
-        nombreUsuario=user.nombreUsuario,
+        nombreUsuario=user.correo,
         genero=user.genero,
         rolUsuario=user.rolUsuario,
         telefono=user.telefono,
@@ -43,3 +45,35 @@ def authenticate_user(db: Session, email: str, password: str):
     if not verify_password(password, user.passwordEncrypt):
         return False
     return user
+
+def get_categorias(db: Session):
+    return db.query(models.Categoria).all()
+
+def create_curso(db: Session, curso: schemas.CursoCreate):
+    db_curso = models.Curso(
+        idCategoria=curso.idCategoria,
+        nombre=curso.nombre,
+        descripcion=curso.descripcion,
+        requisitos=curso.requisitos,
+        ultimaActualizacion=date.today()
+    )
+    db.add(db_curso)
+    db.commit()
+    db.refresh(db_curso)
+    return db_curso
+
+def get_categorias(db: Session):
+    return db.query(models.Categoria).all()
+
+def create_curso(db: Session, curso: schemas.CursoCreate):
+    db_curso = models.Curso(
+        idCategoria=curso.idCategoria,
+        nombre=curso.nombre,
+        descripcion=curso.descripcion,
+        requisitos=curso.requisitos,
+        ultimaActualizacion=date.today()
+    )
+    db.add(db_curso)
+    db.commit()
+    db.refresh(db_curso)
+    return db_curso
