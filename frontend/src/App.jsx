@@ -8,9 +8,11 @@ import {
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import AddCourse from "./components/Courses/AddCourse"; // Ajustar la ruta de importación
+import AddCourse from "./components/Courses/AddCourse";
+import Profile from "./pages/Profile"; // Importar el componente Profile
 import PrivateRoute from "./components/PrivateRoute";
 import RoleBasedRoute from "./components/RoleBasedRoute";
+import CourseDetail from "./pages/CourseDetail";
 
 const App = () => {
   const token = localStorage.getItem("token");
@@ -18,22 +20,21 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route
-          path="/login"
-          element={token ? <Navigate to="/home" /> : <Login />}
-        />
-        <Route
-          path="/register"
-          element={token ? <Navigate to="/home" /> : <Register />}
-        />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route element={<PrivateRoute />}>
           <Route path="/home" element={<Home />} />
+          <Route path="/profile" element={<Profile />} />{" "}
+          <Route path="/cursos/:idCurso" element={<CourseDetail />} />
+          {/* Agregar la ruta del perfil */}
         </Route>
         <Route element={<RoleBasedRoute allowedRoles={[1, 3]} />}>
           <Route path="/admin/add-course" element={<AddCourse />} />
         </Route>
-        <Route path="/" element={<Navigate to="/home" />} />
-        <Route path="*" element={<Navigate to="/home" />} />
+        <Route
+          path="/"
+          element={token ? <Navigate to="/home" /> : <Navigate to="/login" />}
+        />
       </Routes>
     </Router>
   );

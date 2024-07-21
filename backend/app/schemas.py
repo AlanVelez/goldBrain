@@ -1,3 +1,4 @@
+# schemas.py
 from pydantic import BaseModel, EmailStr
 from datetime import date
 from typing import Optional
@@ -21,9 +22,14 @@ class User(BaseModel):
     nombre: str
     apellido: str
     nombreUsuario: str
+    telefono: Optional[str] = None
+    fechaNacimiento: Optional[date] = None
+    biografia: Optional[str] = None
+    imgPerfilPath: Optional[str] = None
+    rolUsuario: int
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 class Token(BaseModel):
     access_token: str
@@ -31,3 +37,59 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+
+class CursoBase(BaseModel):
+    idCategoria: int
+    nombre: str
+    descripcion: Optional[str] = None
+    requisitos: Optional[str] = None
+    portada: Optional[str] = None
+
+class CursoCreate(CursoBase):
+    pass
+
+class Curso(CursoBase):
+    idCurso: int
+    ultimaActualizacion: Optional[date] = None
+    calificacion: Optional[float] = None
+    numEstudiantes: Optional[int] = None
+
+    class Config:
+        orm_mode = True
+
+class Categoria(BaseModel):
+    idCategoria: int
+    nombre: str
+
+    class Config:
+        orm_mode = True
+
+class VideoBase(BaseModel):
+    idCurso: int
+    nombre: str
+    descripcion: Optional[str] = None
+    duracionSeg: int
+    autor: str
+    link: str
+
+class VideoCreate(VideoBase):
+    pass
+
+class Video(VideoBase):
+    idVideo: int
+
+    class Config:
+        orm_mode = True
+
+class InscripcionCreate(BaseModel):
+    idCurso: int
+    idUsuario: int
+
+class Inscripcion(BaseModel):
+    idInscripcion: int
+    idCurso: int
+    idUsuario: int
+    fechaInscripcion: date
+
+    class Config:
+        from_attributes = True

@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from . import models, schemas
 from passlib.context import CryptContext
@@ -35,6 +36,20 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.refresh(db_user)
     return db_user
 
+# Actualización de un usuario existente
+def update_user(db: Session, user_id: int, update_data: dict):
+    db_user = db.query(models.User).filter(models.User.idUsuario == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    for key, value in update_data.items():
+        if value is not None:
+            setattr(db_user, key, value)
+    
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -55,12 +70,14 @@ def create_curso(db: Session, curso: schemas.CursoCreate):
         nombre=curso.nombre,
         descripcion=curso.descripcion,
         requisitos=curso.requisitos,
-        ultimaActualizacion=date.today()
+        ultimaActualizacion=date.today(),
+        portada=curso.portada
     )
     db.add(db_curso)
     db.commit()
     db.refresh(db_curso)
     return db_curso
+
 
 def get_categorias(db: Session):
     return db.query(models.Categoria).all()
@@ -71,9 +88,24 @@ def create_curso(db: Session, curso: schemas.CursoCreate):
         nombre=curso.nombre,
         descripcion=curso.descripcion,
         requisitos=curso.requisitos,
+        portada=curso.portada,  # Asegúrate de incluir el campo portada
         ultimaActualizacion=date.today()
     )
     db.add(db_curso)
     db.commit()
     db.refresh(db_curso)
     return db_curso
+
+
+def create_video(db: Session, video: schemas.VideoCreate):
+    db_video = models.Video(**video.dict())
+    db.add(db_video)
+    db.commit()
+    db.refresh(db_video)
+    return db_video
+
+def get_videos_by_curso(db: Session, curso_id: int):
+    return db.query(models.Video).filter(models.Video.idCurso == curso_id).all()
+
+def get_cursos(db: Session, skip: int = 0, limit: int = 10):
+    return db.query(models.Curso).offset(skip).limit(limit).all()
