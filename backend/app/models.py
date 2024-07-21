@@ -48,10 +48,12 @@ class Curso(Base):
     calificacion = Column(Float, nullable=True)
     numEstudiantes = Column(Integer, nullable=True)
     requisitos = Column(Text, nullable=True)
+    portada = Column(String, nullable=True)
     
     categoria_rel = relationship('Categoria', back_populates='cursos')
     videos = relationship('Video', back_populates='curso')
     inscripciones = relationship('Inscripcion', back_populates='curso')
+
 
 class Categoria(Base):
     __tablename__ = 'categoria'
@@ -69,10 +71,10 @@ class Video(Base):
     duracionSeg = Column(Integer, nullable=False)
     autor = Column(String, nullable=False)
     link = Column(String, nullable=False)
-    idPlataforma = Column(Integer, nullable=True)
-    
+
     curso = relationship('Curso', back_populates='videos')
     aportes = relationship('Aporte', back_populates='video')
+
 
 class Aporte(Base):
     __tablename__ = 'aporte'
