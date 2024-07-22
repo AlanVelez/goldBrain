@@ -78,25 +78,6 @@ def create_curso(db: Session, curso: schemas.CursoCreate):
     db.refresh(db_curso)
     return db_curso
 
-
-def get_categorias(db: Session):
-    return db.query(models.Categoria).all()
-
-def create_curso(db: Session, curso: schemas.CursoCreate):
-    db_curso = models.Curso(
-        idCategoria=curso.idCategoria,
-        nombre=curso.nombre,
-        descripcion=curso.descripcion,
-        requisitos=curso.requisitos,
-        portada=curso.portada,  # Asegúrate de incluir el campo portada
-        ultimaActualizacion=date.today()
-    )
-    db.add(db_curso)
-    db.commit()
-    db.refresh(db_curso)
-    return db_curso
-
-
 def create_video(db: Session, video: schemas.VideoCreate):
     db_video = models.Video(**video.dict())
     db.add(db_video)
@@ -109,3 +90,53 @@ def get_videos_by_curso(db: Session, curso_id: int):
 
 def get_cursos(db: Session, skip: int = 0, limit: int = 10):
     return db.query(models.Curso).offset(skip).limit(limit).all()
+
+#Manejo de inscripciones -> CURSOS
+class InscripcionCreate(BaseModel):
+    idCurso: int
+    idUsuario: int
+
+class Inscripcion(BaseModel):
+    idInscripcion: int
+    idCurso: int
+    idUsuario: int
+    fechaInscripcion: date
+
+    class Config:
+        orm_mode = True
+
+#Manejo de aportes -> Reproductor de videos
+class AporteBase(BaseModel):
+    idVideo: int
+    idUsuario: int
+    comentario: Optional[str] = None
+
+class AporteCreate(AporteBase):
+    pass
+
+class AporteUpdate(BaseModel):
+    idAporte: int
+
+class Aporte(AporteBase):
+    idAporte: int
+    numLikes: int
+    fechaAporte: date
+
+    class Config:
+        orm_mode = True
+
+#Manejo de asesorias -> Reproductor de video
+class AsesoriaCreate(BaseModel):
+    idCurso: int
+    idUsuario: int
+    descripcion: str
+
+class Asesoria(BaseModel):
+    idAsesoria: int
+    idCurso: int
+    idUsuario: int
+    descripcion: str
+    fechaSolicitud: date
+
+    class Config:
+        orm_mode = True

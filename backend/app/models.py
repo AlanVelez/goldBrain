@@ -97,3 +97,14 @@ class Inscripcion(Base):
     
     curso = relationship('Curso', back_populates='inscripciones')
     usuario = relationship('User', back_populates='inscripciones')
+
+class Asesoria(Base):
+    __tablename__ = 'asesoria'
+    idAsesoria = Column(Integer, primary_key=True, autoincrement=True)
+    idCurso = Column(Integer, ForeignKey('curso.idCurso'), nullable=False)
+    idUsuario = Column(Integer, ForeignKey('user.idUsuario'), nullable=False)
+    descripcion = Column(Text, nullable=False)
+    fechaSolicitud = Column(Date, nullable=False)
+    
+    curso = relationship('Curso')
+    usuario = relationship('User')
