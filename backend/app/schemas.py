@@ -93,3 +93,37 @@ class Inscripcion(BaseModel):
 
     class Config:
         from_attributes = True
+
+class AporteBase(BaseModel):
+    idVideo: int
+    idUsuario: int
+    comentario: Optional[str] = None
+
+class AporteCreate(AporteBase):
+    pass
+
+class AporteUpdate(BaseModel):
+    idAporte: int
+
+class Aporte(AporteBase):
+    idAporte: int
+    numLikes: int
+    fechaAporte: date
+
+    class Config:
+        orm_mode = True
+
+class AsesoriaCreate(BaseModel):
+    idCurso: int
+    idUsuario: int
+    descripcion: str
+
+class Asesoria(BaseModel):
+    idAsesoria: int
+    idCurso: int
+    idUsuario: int
+    descripcion: str
+    fechaSolicitud: date
+
+    class Config:
+        orm_mode = True

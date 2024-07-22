@@ -92,51 +92,58 @@ def get_cursos(db: Session, skip: int = 0, limit: int = 10):
     return db.query(models.Curso).offset(skip).limit(limit).all()
 
 #Manejo de inscripciones -> CURSOS
-class InscripcionCreate(BaseModel):
-    idCurso: int
-    idUsuario: int
+def get_inscripcion_by_course_and_user(db: Session, idCurso: int, idUsuario: int):
+    return db.query(models.Inscripcion).filter(
+        models.Inscripcion.idCurso == idCurso,
+        models.Inscripcion.idUsuario == idUsuario
+    ).first()
 
-class Inscripcion(BaseModel):
-    idInscripcion: int
-    idCurso: int
-    idUsuario: int
-    fechaInscripcion: date
-
-    class Config:
-        orm_mode = True
+def create_inscripcion(db: Session, inscripcion: schemas.InscripcionCreate):
+    db_inscripcion = models.Inscripcion(
+        idCurso=inscripcion.idCurso,
+        idUsuario=inscripcion.idUsuario,
+        fechaInscripcion=date.today()
+    )
+    db.add(db_inscripcion)
+    db.commit()
+    db.refresh(db_inscripcion)
+    return db_inscripcion
 
 #Manejo de aportes -> Reproductor de videos
-class AporteBase(BaseModel):
-    idVideo: int
-    idUsuario: int
-    comentario: Optional[str] = None
+def get_comentarios_by_video(db: Session, idVideo: int):
+    return db.query(models.Aporte).filter(models.Aporte.idVideo == idVideo).all()
 
-class AporteCreate(AporteBase):
-    pass
+def create_aporte(db: Session, aporte: schemas.AporteCreate):
+    db_aporte = models.Aporte(
+        idVideo=aporte.idVideo,
+        idUsuario=aporte.idUsuario,
+        comentario=aporte.comentario,
+        numLikes=0,
+        fechaAporte=date.today()
+    )
+    db.add(db_aporte)
+    db.commit()
+    db.refresh(db_aporte)
+    return db_aporte
 
-class AporteUpdate(BaseModel):
-    idAporte: int
-
-class Aporte(AporteBase):
-    idAporte: int
-    numLikes: int
-    fechaAporte: date
-
-    class Config:
-        orm_mode = True
+def update_aporte(db: Session, aporte_id: int, aporte_update: schemas.AporteUpdate):
+    db_aporte = db.query(models.Aporte).filter(models.Aporte.idAporte == aporte_id).first()
+    if not db_aporte:
+        raise HTTPException(status_code=404, detail="Aporte no encontrado")
+    db_aporte.numLikes += 1
+    db.commit()
+    db.refresh(db_aporte)
+    return db_aporte
 
 #Manejo de asesorias -> Reproductor de video
-class AsesoriaCreate(BaseModel):
-    idCurso: int
-    idUsuario: int
-    descripcion: str
-
-class Asesoria(BaseModel):
-    idAsesoria: int
-    idCurso: int
-    idUsuario: int
-    descripcion: str
-    fechaSolicitud: date
-
-    class Config:
-        orm_mode = True
+def create_asesoria(db: Session, asesoria: schemas.AsesoriaCreate):
+    db_asesoria = models.Asesoria(
+        idCurso=asesoria.idCurso,
+        idUsuario=asesoria.idUsuario,
+        descripcion=asesoria.descripcion,
+        fechaSolicitud=date.today()
+    )
+    db.add(db_asesoria)
+    db.commit()
+    db.refresh(db_asesoria)
+    return db_asesoria
