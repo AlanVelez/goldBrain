@@ -1,23 +1,19 @@
-# main.py
 from datetime import timedelta
-from fastapi import APIRouter, FastAPI, Depends, HTTPException, File, UploadFile, Form
+from fastapi import FastAPI, Depends, HTTPException, File, UploadFile, Form, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-import uvicorn
 from . import crud, models, schemas, auth
 from .database import SessionLocal, engine, database, get_db
 from typing import List, Optional
 import os
 import shutil
+import uvicorn
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-router = APIRouter()
-
-app.include_router(router)
 
 UPLOAD_DIRECTORY = "uploads/"
 
@@ -105,7 +101,6 @@ async def update_user(
     else:
         update_data["imgPerfilPath"] = imgPerfilPath or current_user.imgPerfilPath
 
-    print(update_data)  # Debugging: print the update data
     return crud.update_user(db, current_user.idUsuario, update_data)
 
 @app.get("/categorias/", response_model=List[schemas.Categoria])
@@ -142,35 +137,73 @@ def read_videos(curso_id: int, db: Session = Depends(get_db)):
 
 @app.post("/cursos/", response_model=schemas.Curso)
 def create_curso(curso: schemas.CursoCreate, db: Session = Depends(get_db)):
-    print("Creating course with data:", curso)
     return crud.create_curso(db=db, curso=curso)
 
 @app.get("/cursos/", response_model=List[schemas.Curso])
 def read_cursos(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     cursos = crud.get_cursos(db, skip=skip, limit=limit)
-    print("Returning courses:", cursos)
     return cursos
 
-@router.post("/inscripciones", response_model=schemas.Inscripcion)
+@app.post("/inscripciones", response_model=schemas.Inscripcion)
 async def create_inscripcion(inscripcion: schemas.InscripcionCreate, db: Session = Depends(get_db)):
     db_inscripcion = crud.get_inscripcion_by_course_and_user(db, inscripcion.idCurso, inscripcion.idUsuario)
     if db_inscripcion:
         raise HTTPException(status_code=400, detail="El usuario ya está inscrito en este curso")
     return crud.create_inscripcion(db=db, inscripcion=inscripcion)
 
-# Endpoint para obtener un curso por ID
-@router.get("/cursos/{idCurso}", response_model=schemas.Curso)
+@app.get("/cursos/{idCurso}", response_model=schemas.Curso)
 async def read_course(idCurso: int, db: Session = Depends(get_db)):
     db_course = crud.get_course(db, idCurso=idCurso)
     if not db_course:
         raise HTTPException(status_code=404, detail="Curso no encontrado")
     return db_course
 
-# Endpoint para obtener videos de un curso por ID
-@router.get("/videos/{idCurso}", response_model=List[schemas.Video])
+@app.get("/videos/{idCurso}", response_model=List[schemas.Video])
 async def read_videos(idCurso: int, db: Session = Depends(get_db)):
     videos = crud.get_videos_by_curso(db, idCurso=idCurso)
     return videos
 
+#EndPoint para obtencion de cursos por barra de busqueda
+@app.get("/buscar/cursos", response_model=List[schemas.Curso])
+def search_cursos(query: str, db: Session = Depends(get_db)):
+    cursos = db.query(models.Curso).filter(
+        models.Curso.nombre.ilike(f"%{query}%") | 
+        models.Curso.descripcion.ilike(f"%{query}%")
+    ).all()
+    return cursos
+
+#EndPoint para listado de videos por curso
+@app.get("/cursos/{curso_id}/videos", response_model=List[schemas.Video])
+def read_videos_by_curso(curso_id: int, db: Session = Depends(get_db)):
+    videos = db.query(models.Video).filter(models.Video.idCurso == curso_id).all()
+    return videos
+#EndPoint para informacion de videos por curso
+@app.get("/videos/{idVideo}", response_model=schemas.Video)
+def read_video(idVideo: int, db: Session = Depends(get_db)):
+    video = db.query(models.Video).filter(models.Video.idVideo == idVideo).first()
+    if not video:
+        raise HTTPException(status_code=404, detail="Video no encontrado")
+    return video
+
+#EndPoint para funcionalidad de comentarios
+@app.get("/videos/{idVideo}/comentarios", response_model=List[schemas.Aporte])
+def read_comentarios_by_video(idVideo: int, db: Session = Depends(get_db)):
+    comentarios = db.query(models.Aporte).filter(models.Aporte.idVideo == idVideo).all()
+    return comentarios
+
+@app.post("/videos/{idVideo}/comentarios", response_model=schemas.Aporte)
+def create_comentario(idVideo: int, comentario: schemas.AporteCreate, db: Session = Depends(get_db)):
+    comentario.idVideo = idVideo
+    return crud.create_aporte(db=db, aporte=comentario)
+
+#EndPoint para funcionalidad de likes por comentario/aporte
+@app.put("/videos/{idVideo}/likes", response_model=schemas.Aporte)
+def update_likes(idVideo: int, like: schemas.AporteUpdate, db: Session = Depends(get_db)):
+    video = db.query(models.Video).filter(models.Video.idVideo == idVideo).first()
+    if not video:
+        raise HTTPException(status_code=404, detail="Video no encontrado")
+    return crud.update_aporte(db=db, aporte_id=like.idAporte, aporte_update=like)
+
+
 if __name__ == "__main__":
-    uvicorn.run("backend.app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
