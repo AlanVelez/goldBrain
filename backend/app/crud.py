@@ -107,5 +107,44 @@ def create_video(db: Session, video: schemas.VideoCreate):
 def get_videos_by_curso(db: Session, curso_id: int):
     return db.query(models.Video).filter(models.Video.idCurso == curso_id).all()
 
+def get_course(db: Session, curso_id: int):
+    return db.query(models.Curso).filter(models.Curso.idCurso == curso_id).all()
+
 def get_cursos(db: Session, skip: int = 0, limit: int = 10):
     return db.query(models.Curso).offset(skip).limit(limit).all()
+
+def update_curso_portada(db: Session, curso_id: int, portada_path: str):
+    db_curso = db.query(models.Curso).filter(models.Curso.idCurso == curso_id).first()
+    if db_curso:
+        db_curso.portada = portada_path
+        db.commit()
+        db.refresh(db_curso)
+    return db_curso
+
+def get_categoria(db: Session, idCategoria: int):
+    return db.query(models.Categoria).filter(models.Categoria.idCategoria == idCategoria).first()
+
+def create_video_progress(db: Session, progress: schemas.VideoProgressCreate):
+    db_progress = models.VideoProgress(**progress.dict())
+    db.add(db_progress)
+    db.commit()
+    db.refresh(db_progress)
+    return db_progress
+
+def get_video_progress(db: Session, user_id: int, video_id: int):
+    return db.query(models.VideoProgress).filter(
+        models.VideoProgress.user_id == user_id,
+        models.VideoProgress.video_id == video_id
+    ).first()
+
+def update_video_progress(db: Session, progress: schemas.VideoProgressCreate):
+    db_progress = get_video_progress(db, progress.user_id, progress.video_id)
+    if not db_progress:
+        raise HTTPException(status_code=404, detail="Progress not found")
+
+    for key, value in progress.dict().items():
+        setattr(db_progress, key, value)
+
+    db.commit()
+    db.refresh(db_progress)
+    return db_progress

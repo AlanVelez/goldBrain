@@ -47,11 +47,15 @@ const AddCourseVideos = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const dataToSend = {
+      ...formData,
+      idCurso: parseInt(idCurso),
+    };
     try {
-      const response = await axios.post("http://localhost:8000/videos/", {
-        ...formData,
-        idCurso,
-      });
+      const response = await axios.post(
+        "http://localhost:8000/videos/",
+        dataToSend
+      );
       setMessage("Video agregado con éxito");
       setVideos([...videos, response.data]);
       setFormData({
@@ -64,8 +68,11 @@ const AddCourseVideos = () => {
     } catch (error) {
       setMessage(
         "Error al agregar el video: " +
-          (error.response?.data?.detail || error.message)
+          (error.response?.data?.detail ||
+            JSON.stringify(error.response?.data) ||
+            error.message)
       );
+      console.error("Detalles del error:", error.response?.data);
     }
   };
 
@@ -85,7 +92,11 @@ const AddCourseVideos = () => {
             onSubmit={handleSubmit}
             className="bg-white p-6 rounded border w-1/3"
           >
-            {message && <p className="text-red-500 mb-4">{message}</p>}
+            {message && (
+              <p className="text-green-500 mb-4 bg-green-100 rounded-lg p-2 border border-green-500">
+                {message}
+              </p>
+            )}
             <div className="mb-4">
               <label htmlFor="nombre" className="block text-gray-700 mb-2">
                 Título del Video

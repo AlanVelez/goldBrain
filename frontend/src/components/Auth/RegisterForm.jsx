@@ -65,7 +65,7 @@ function RegisterForm() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white">
-      <h1 className="text-4xl font-bold text-yellow-500 mb-6">GoldBrain</h1>
+      <h1 className="text-4xl font-bold text-yellow-400 mb-6">GoldBrain</h1>
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded w-2/3 lg:w-1/2"
@@ -82,7 +82,7 @@ function RegisterForm() {
               id="nombre"
               name="nombre"
               placeholder="Nombre"
-              className="w-full px-3 py-2 border rounded focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
               value={formData.nombre}
               onChange={handleChange}
               required
@@ -99,7 +99,7 @@ function RegisterForm() {
               id="apellido"
               name="apellido"
               placeholder="Apellido"
-              className="w-full px-3 py-2 border rounded focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
               value={formData.apellido}
               onChange={handleChange}
               required
@@ -118,7 +118,7 @@ function RegisterForm() {
             id="correo"
             name="correo"
             placeholder="ejemplo@ejemplo.com"
-            className="w-full px-3 py-2 border rounded focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
             value={formData.correo}
             onChange={handleChange}
             required
@@ -127,56 +127,60 @@ function RegisterForm() {
         </div>
 
         <div className="flex space-x-4 mb-4">
-          <div className="relative w-1/2">
+          <div className="w-1/2">
             <label htmlFor="password" className="block text-gray-700 mb-2">
               Contraseña
             </label>
-            <input
-              type={showPassword ? "text" : "password"}
-              id="password"
-              name="password"
-              placeholder="Contraseña"
-              className="w-full px-3 py-2 border rounded focus:outline-none"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              minLength="8"
-              title="La contraseña debe tener al menos 8 caracteres"
-            />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-700"
-              onClick={toggleShowPassword}
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </button>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                placeholder="Contraseña"
+                className="relative w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                minLength="8"
+                title="La contraseña debe tener al menos 8 caracteres"
+              />
+              <button
+                type="button"
+                className="absolute inset-y-1/2 right-0 pr-3 flex items-center text-gray-700"
+                onClick={toggleShowPassword}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
-          <div className="relative w-1/2">
+          <div className="w-1/2">
             <label
               htmlFor="confirmPassword"
               className="block text-gray-700 mb-2"
             >
               Confirmar Contraseña
             </label>
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              id="confirmPassword"
-              name="confirmPassword"
-              placeholder="Confirmar Contraseña"
-              className="w-full px-3 py-2 border rounded focus:outline-none"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              minLength="8"
-              title="La confirmación de la contraseña debe tener al menos 8 caracteres"
-            />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-700"
-              onClick={toggleShowConfirmPassword}
-            >
-              {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-            </button>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                name="confirmPassword"
+                placeholder="Confirmar Contraseña"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+                minLength="8"
+                title="La confirmación de la contraseña debe tener al menos 8 caracteres"
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-700"
+                onClick={toggleShowConfirmPassword}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -188,7 +192,7 @@ function RegisterForm() {
             <select
               id="genero"
               name="genero"
-              className="w-full px-3 py-2 border rounded focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
               value={formData.genero}
               onChange={handleChange}
               required
@@ -211,7 +215,7 @@ function RegisterForm() {
               id="fechaNacimiento"
               name="fechaNacimiento"
               placeholder="Fecha de Nacimiento"
-              className="w-full px-3 py-2 border rounded focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
               value={formData.fechaNacimiento}
               onChange={handleChange}
               required
@@ -228,7 +232,7 @@ function RegisterForm() {
             id="telefono"
             name="telefono"
             placeholder="Teléfono"
-            className="w-full px-3 py-2 border rounded focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
             value={formData.telefono}
             onChange={handleChange}
             required
@@ -239,7 +243,7 @@ function RegisterForm() {
 
         <button
           type="submit"
-          className="w-full bg-yellow-500 text-white py-2 rounded"
+          className="w-full bg-yellow-400 text-white py-2 rounded-lg hover:bg-yellow-500"
         >
           Registrarme
         </button>

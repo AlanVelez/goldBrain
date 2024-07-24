@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Text, Float
+from sqlalchemy import Boolean, Column, Integer, String, Date, ForeignKey, Text, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -11,18 +11,19 @@ class User(Base):
     passwordEncrypt = Column(String, nullable=False)
     nombre = Column(String, nullable=False)
     apellido = Column(String, nullable=False)
-    telefono = Column(String, nullable=True)  # Cambiado a String
+    telefono = Column(String, nullable=True)
     fechaNacimiento = Column(Date, nullable=True)
     nombreUsuario = Column(String, nullable=False, unique=True)
     biografia = Column(Text, nullable=True)
-    genero = Column(Integer, ForeignKey('genero.idGenero'), nullable=False)  # Definir ForeignKey
+    genero = Column(Integer, ForeignKey('genero.idGenero'), nullable=False)
     imgPerfilPath = Column(String, nullable=True)
-    rolUsuario = Column(Integer, ForeignKey('rol.idRol'), nullable=False)  # Definir ForeignKey
+    rolUsuario = Column(Integer, ForeignKey('rol.idRol'), nullable=False)
 
     genero_rel = relationship('Genero', back_populates='usuarios')
     rol_rel = relationship('Rol', back_populates='usuarios')
     aportes = relationship('Aporte', back_populates='usuario')
     inscripciones = relationship('Inscripcion', back_populates='usuario')
+    video_progress = relationship('VideoProgress', back_populates='user')
 
 class Genero(Base):
     __tablename__ = 'genero'
@@ -40,20 +41,19 @@ class Rol(Base):
 
 class Curso(Base):
     __tablename__ = 'curso'
-    idCurso = Column(Integer, primary_key=True, autoincrement=True)
-    idCategoria = Column(Integer, ForeignKey('categoria.idCategoria'), nullable=False)
-    nombre = Column(String, nullable=False)
-    descripcion = Column(Text, nullable=True)
-    ultimaActualizacion = Column(Date, nullable=True)
-    calificacion = Column(Float, nullable=True)
-    numEstudiantes = Column(Integer, nullable=True)
-    requisitos = Column(Text, nullable=True)
-    portada = Column(String, nullable=True)
-    
+    idCurso = Column("idCurso", Integer, primary_key=True, autoincrement=True)
+    idCategoria = Column("idCategoria", Integer, ForeignKey('categoria.idCategoria'), nullable=False)
+    nombre = Column("nombre", String, nullable=False)
+    descripcion = Column("descripcion", Text, nullable=True)
+    ultimaActualizacion = Column("ultimaActualizacion", Date, nullable=True)
+    calificacion = Column("calificacion", Float, nullable=True)
+    numEstudiantes = Column("numEstudiantes", Integer, nullable=True)
+    requisitos = Column("requisitos", Text, nullable=True)
+    portada = Column("portada", String, nullable=True)
+
     categoria_rel = relationship('Categoria', back_populates='cursos')
     videos = relationship('Video', back_populates='curso')
     inscripciones = relationship('Inscripcion', back_populates='curso')
-
 
 class Categoria(Base):
     __tablename__ = 'categoria'
@@ -74,6 +74,7 @@ class Video(Base):
 
     curso = relationship('Curso', back_populates='videos')
     aportes = relationship('Aporte', back_populates='video')
+    video_progress = relationship('VideoProgress', back_populates='video')
 
 
 class Aporte(Base):
@@ -97,3 +98,14 @@ class Inscripcion(Base):
     
     curso = relationship('Curso', back_populates='inscripciones')
     usuario = relationship('User', back_populates='inscripciones')
+
+class VideoProgress(Base):
+    __tablename__ = 'video_progress'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('user.idUsuario'), nullable=False)
+    video_id = Column(Integer, ForeignKey('video.idVideo'), nullable=False)
+    watched = Column(Boolean, default=False)
+    progress = Column(Float, default=0.0)
+
+    user = relationship('User', back_populates='video_progress')
+    video = relationship('Video', back_populates='video_progress')
