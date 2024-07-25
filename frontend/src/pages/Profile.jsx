@@ -109,9 +109,6 @@ const Profile = () => {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <main className="flex flex-col flex-1 px-4">
-        <h1 className="text-xl text-left w-full font-bold text-yellow-400 my-6">
-          Editar perfil
-        </h1>
         {alert.message && (
           <Alert
             type={alert.type}

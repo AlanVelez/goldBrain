@@ -196,7 +196,7 @@ def read_video_progress(user_id: int, video_id: int, db: Session = Depends(get_d
 
 @app.put("/video-progress/{user_id}/{video_id}", response_model=schemas.VideoProgress)
 def update_video_progress(user_id: int, video_id: int, progress: schemas.VideoProgressCreate, db: Session = Depends(get_db)):
-    return crud.update_video_progress(db, progress)
+    return crud.update_video_progress(db, user_id, video_id, progress)
 
 @app.get("/video-progress/user/{user_id}/course/{course_id}", response_model=List[schemas.VideoProgress])
 def get_video_progress_for_course(user_id: int, course_id: int, db: Session = Depends(get_db)):
@@ -204,6 +204,57 @@ def get_video_progress_for_course(user_id: int, course_id: int, db: Session = De
         models.VideoProgress.user_id == user_id,
         models.Video.idCurso == course_id
     ).all()
+
+# main.py
+
+@app.get("/inscripciones/{user_id}/{course_id}", response_model=schemas.Inscripcion)
+def read_inscripcion(user_id: int, course_id: int, db: Session = Depends(get_db)):
+    inscripcion = crud.get_inscripcion_by_course_and_user(db, user_id, course_id)
+    if not inscripcion:
+        raise HTTPException(status_code=404, detail="Inscripción no encontrada")
+    return inscripcion
+
+@app.get("/enrollments/{user_id}/{course_id}", response_model=schemas.Inscripcion)
+def read_inscripcion(user_id: int, course_id: int, db: Session = Depends(get_db)):
+    inscripcion = crud.get_inscripcion_by_course_and_user(db, user_id, course_id)
+    if not inscripcion:
+        raise HTTPException(status_code=404, detail="Inscripción no encontrada")
+    return inscripcion
+
+@app.post("/enrollments/", response_model=schemas.Inscripcion)
+async def create_inscripcion(inscripcion: schemas.InscripcionCreate, db: Session = Depends(get_db)):
+    db_inscripcion = crud.get_inscripcion_by_course_and_user(db, inscripcion.idUsuario, inscripcion.idCurso)
+    if db_inscripcion:
+        raise HTTPException(status_code=400, detail="El usuario ya está inscrito en este curso")
+    return crud.create_inscripcion(db=db, inscripcion=inscripcion)
+
+# En main.py
+@app.get("/users/{user_id}/recommended_courses", response_model=List[schemas.Curso])
+def read_recommended_courses(user_id: int, db: Session = Depends(get_db)):
+    courses = crud.get_recommended_courses(db, user_id)
+    return courses
+
+@app.get("/users/{user_id}/enrollments", response_model=List[schemas.Curso])
+def get_user_enrollments(user_id: int, db: Session = Depends(get_db)):
+    user_courses = crud.get_courses_by_user(db, user_id)
+    return user_courses
+
+@app.get("/users/{user_id}/last-unwatched-videos", response_model=List[schemas.Video])
+def get_last_unwatched_videos(user_id: int, db: Session = Depends(get_db)):
+    user_courses = crud.get_user_courses(db, user_id)
+    if not user_courses:
+        raise HTTPException(status_code=404, detail="User not enrolled in any course")
+    
+    unwatched_videos = []
+    for course in user_courses:
+        unwatched_video = crud.get_last_unwatched_video(db, user_id, course.idCurso)
+        if unwatched_video:
+            unwatched_videos.append(unwatched_video)
+    
+    if not unwatched_videos:
+        raise HTTPException(status_code=404, detail="No unwatched videos found")
+    
+    return unwatched_videos
 
 
 if __name__ == "__main__":

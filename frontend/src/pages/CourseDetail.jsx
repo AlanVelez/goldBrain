@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   getCourse,
   getCategoria,
   getVideosByCurso,
+  checkEnrollment,
+  enrollUser,
+  getUserProgress,
 } from "../services/courseService";
 
 const CourseDetail = () => {
@@ -14,20 +18,42 @@ const CourseDetail = () => {
   const [videos, setVideos] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
+  const [isEnrolled, setIsEnrolled] = useState(false);
 
   useEffect(() => {
-    const fetchCourseDetails = async () => {
+    const fetchUser = async () => {
+      try {
+        const user = await axios.get("http://localhost:8000/users/me", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setUserId(user.data.idUsuario);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const fetchCourseDetails = async () => {
+    if (userId) {
       try {
         const courseData = await getCourse(parseInt(idCurso, 10));
         if (courseData && courseData.length > 0) {
           const course = courseData[0];
-          setCourse(course); // Asumimos que solo hay un curso en la lista
+          setCourse(course);
           if (course.idCategoria) {
             const categoriaData = await getCategoria(course.idCategoria);
             setCategoria(categoriaData.nombre);
           }
           const videosData = await getVideosByCurso(course.idCurso);
           setVideos(videosData);
+
+          // Verificar si el usuario está inscrito
+          const enrolled = await checkEnrollment(userId, idCurso);
+          setIsEnrolled(enrolled);
         } else {
           setError("No se encontraron detalles del curso.");
         }
@@ -36,13 +62,45 @@ const CourseDetail = () => {
         setError("Error al cargar los detalles del curso.");
         setLoading(false);
       }
-    };
+    }
+  };
 
+  useEffect(() => {
     fetchCourseDetails();
-  }, [idCurso]);
+  }, [idCurso, userId]);
+
+  const handleButtonClick = async () => {
+    if (!isEnrolled) {
+      // Inscribir al usuario
+      await enrollUser(userId, idCurso);
+      setIsEnrolled(true);
+      // Obtener los detalles actualizados del curso
+      await fetchCourseDetails();
+      // Redirigir al primer video
+      if (videos.length > 0) {
+        navigate(`/course/${idCurso}/video/${videos[0].idVideo}`);
+      }
+    } else {
+      // Obtener el progreso del usuario
+      const progressData = await getUserProgress(userId, idCurso);
+      const lastNotWatchedVideo = videos.find((video) => {
+        const progress = progressData.find((p) => p.video_id === video.idVideo);
+        return !progress || !progress.watched;
+      });
+
+      if (lastNotWatchedVideo) {
+        navigate(`/course/${idCurso}/video/${lastNotWatchedVideo.idVideo}`);
+      } else if (videos.length > 0) {
+        // Si todos los videos han sido vistos, redirigir al primer video
+        navigate(`/course/${idCurso}/video/${videos[0].idVideo}`);
+      }
+    }
+  };
 
   const handleVideoClick = (videoId) => {
-    navigate(`/course/${idCurso}/video/${videoId}`);
+    if (isEnrolled) {
+      navigate(`/course/${idCurso}/video/${videoId}`);
+    }
   };
 
   return (
@@ -91,8 +149,8 @@ const CourseDetail = () => {
                   </svg>
                 </p>
                 <p className="font-semibold text-gray-500">
-                  {course.estudiantes == null ? 0 : course.estudiantes}{" "}
-                  {course.estudiantes === 1 ? "estudiante" : "estudiantes"}
+                  {course.numEstudiantes == null ? 0 : course.numEstudiantes}{" "}
+                  {course.numEstudiantes === 1 ? "estudiante" : "estudiantes"}
                 </p>
               </div>
               <p className="text-gray-600 flex items-center gap-1 mt-2">
@@ -112,8 +170,11 @@ const CourseDetail = () => {
                 {new Date(course.ultimaActualizacion).toLocaleDateString()}
               </p>
               <p className="text-gray-700 my-4">{course.descripcion}</p>
-              <button className="p-2 w-full rounded-lg text-white font-semibold mt-4 bg-yellow-400 hover:bg-yellow-500">
-                Comenzar ahora
+              <button
+                className="p-2 w-full rounded-lg text-white font-semibold mt-4 bg-yellow-400 hover:bg-yellow-500"
+                onClick={handleButtonClick}
+              >
+                {isEnrolled ? "Continuar" : "Comenzar ahora"}
               </button>
             </div>
           </div>
@@ -133,8 +194,14 @@ const CourseDetail = () => {
                 {videos.map((video) => (
                   <div
                     key={video.idVideo}
-                    className="bg-gray-200 rounded-lg shadow-md p-4 mb-4 flex justify-between items-center text-gray-400 hover:cursor-pointer hover:scale-105 transition-transform"
-                    onClick={() => handleVideoClick(video.idVideo)}
+                    className={`rounded-lg shadow-md p-4 mb-4 flex justify-between items-center ${
+                      isEnrolled
+                        ? "bg-yellow-400 text-white hover:cursor-pointer hover:bg-yellow-500"
+                        : "text-gray-300 cursor-not-allowed"
+                    }`}
+                    onClick={() =>
+                      isEnrolled && handleVideoClick(video.idVideo)
+                    }
                   >
                     <div className="flex gap-1 items-center">
                       <svg
@@ -144,24 +211,14 @@ const CourseDetail = () => {
                         className="size-6"
                       >
                         <path
-                          fill-rule="evenodd"
+                          fillRule="evenodd"
                           d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.573 0 3.286L7.28 19.99c-1.25.687-2.779-.217-2.779-1.643V5.653Z"
-                          clip-rule="evenodd"
+                          clipRule="evenodd"
                         />
                       </svg>
 
                       <h4 className="text-lg font-semibold">{video.nombre}</h4>
                     </div>
-                    <p className="mb-2">{video.descripcion}</p>
-                    <p className="mb-2">
-                      Duración: {video.duracionSeg} segundos
-                    </p>
-                    <button
-                      className="text-blue-500 underline"
-                      onClick={() => handleVideoClick(video.idVideo)}
-                    >
-                      Ver Video
-                    </button>
                   </div>
                 ))}
               </div>

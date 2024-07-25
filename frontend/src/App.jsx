@@ -17,6 +17,8 @@ import AddCourseVideos from "./components/Courses/AddCourseVideos";
 import ViewProfile from "./pages/ViewProfile";
 import Help from "./pages/Help";
 import VideoPlayer from "./pages/VideoPlayer";
+import MyCourses from "./pages/MyCourses";
+import Courses from "./pages/Courses";
 
 const App = () => {
   const token = localStorage.getItem("token");
@@ -30,6 +32,8 @@ const App = () => {
           <Route path="/home" element={<Home />} />
           <Route path="/profile" element={<Profile />} />{" "}
           <Route path="/cursos/:idCurso" element={<CourseDetail />} />
+          <Route path="/my-courses" element={<MyCourses />} />
+          <Route path="/cursos" element={<Courses />} />
           <Route
             path="/course/:idCurso/video/:idVideo"
             element={<VideoPlayer />}

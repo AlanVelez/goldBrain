@@ -137,14 +137,77 @@ def get_video_progress(db: Session, user_id: int, video_id: int):
         models.VideoProgress.video_id == video_id
     ).first()
 
-def update_video_progress(db: Session, progress: schemas.VideoProgressCreate):
-    db_progress = get_video_progress(db, progress.user_id, progress.video_id)
-    if not db_progress:
-        raise HTTPException(status_code=404, detail="Progress not found")
+def update_video_progress(db: Session, user_id: int, video_id: int, progress: schemas.VideoProgressCreate):
+    video_progress = db.query(models.VideoProgress).filter(
+        models.VideoProgress.user_id == user_id,
+        models.VideoProgress.video_id == video_id
+    ).first()
 
-    for key, value in progress.dict().items():
-        setattr(db_progress, key, value)
+    if video_progress:
+        video_progress.progress = progress.progress
+        video_progress.watched = progress.watched
+        db.commit()
+        db.refresh(video_progress)
+        return video_progress
+    else:
+        new_video_progress = models.VideoProgress(
+            user_id=user_id,
+            video_id=video_id,
+            progress=progress.progress,
+            watched=progress.watched
+        )
+        db.add(new_video_progress)
+        db.commit()
+        db.refresh(new_video_progress)
+        return new_video_progress
+
+def create_inscripcion(db: Session, inscripcion: schemas.InscripcionCreate):
+    db_inscripcion = models.Inscripcion(
+        idCurso=inscripcion.idCurso,
+        idUsuario=inscripcion.idUsuario,
+        fechaInscripcion=date.today()  # Establecer la fecha actual
+    )
+    db.add(db_inscripcion)
+    
+    # Incrementar el número de estudiantes inscritos
+    curso = db.query(models.Curso).filter(models.Curso.idCurso == inscripcion.idCurso).first()
+    if curso:
+        curso.numEstudiantes = (curso.numEstudiantes or 0) + 1
 
     db.commit()
-    db.refresh(db_progress)
-    return db_progress
+    db.refresh(db_inscripcion)
+    return db_inscripcion
+
+def get_inscripcion_by_course_and_user(db: Session, user_id: int, course_id: int):
+    return db.query(models.Inscripcion).filter(models.Inscripcion.idUsuario == user_id, models.Inscripcion.idCurso == course_id).first()
+
+# En crud.py
+def get_recommended_courses(db: Session, user_id: int):
+    # Obtener los cursos en los que el usuario está inscrito
+    user_courses = db.query(models.Inscripcion).filter(models.Inscripcion.idUsuario == user_id).all()
+    
+    # Obtener las categorías de esos cursos
+    user_categories = {course.curso.idCategoria for course in user_courses}
+    
+    # Obtener los cursos recomendados basados en esas categorías
+    recommended_courses = db.query(models.Curso).filter(models.Curso.idCategoria.in_(user_categories)).all()
+    
+    return recommended_courses
+
+def get_courses_by_user(db: Session, user_id: int):
+    return db.query(models.Curso).join(models.Inscripcion).filter(models.Inscripcion.idUsuario == user_id).all()
+
+def get_last_unwatched_video(db: Session, user_id: int, course_id: int):
+    return (
+        db.query(models.Video)
+        .outerjoin(models.VideoProgress, 
+                   (models.Video.idVideo == models.VideoProgress.video_id) & 
+                   (models.VideoProgress.user_id == user_id))
+        .filter(models.Video.idCurso == course_id, 
+                (models.VideoProgress.watched == None) | (models.VideoProgress.watched == False))
+        .order_by(models.Video.idVideo)
+        .first()
+    )
+
+def get_user_courses(db: Session, user_id: int):
+    return db.query(models.Curso).join(models.Inscripcion).filter(models.Inscripcion.idUsuario == user_id).all()

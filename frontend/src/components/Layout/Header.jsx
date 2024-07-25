@@ -6,6 +6,7 @@ import { getCurrentUser } from "../../services/auth";
 function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [isFocused, setIsFocused] = useState(false);
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
@@ -46,24 +47,30 @@ function Header() {
   };
 
   return (
-    <header className="bg-yellow-400 text-white p-4 flex justify-between items-center">
+    <header className="text-yellow-400 p-4 flex justify-between items-center w-full">
       <h1
-        className="text-xl font-bold cursor-pointer"
+        className="text-2xl font-bold cursor-pointer w-1/3"
         onClick={() => navigate("/home")}
       >
         GoldBrain
       </h1>
-      <div className="flex-1 mx-4">
+      <div
+        className={`flex-1 mx-4 w-1/3 border rounded-lg ${
+          isFocused ? "border-yellow-400" : "border-gray-300"
+        } bg-gray-50`}
+      >
         <input
           type="text"
           placeholder="¿Qué quieres aprender?"
-          className="w-full px-4 py-2 rounded-full text-gray-800 focus:outline-none"
+          className="w-full bg-transparent px-4 py-2 rounded-full text-gray-800 focus:outline-none"
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
         />
       </div>
-      <div className="relative" ref={dropdownRef}>
+      <div className="relative w-1/3 flex flex-row-reverse" ref={dropdownRef}>
         <button
           onClick={toggleDropdown}
-          className="flex items-center focus:outline-none"
+          className="flex items-center focus:outline-none text-gray-900"
         >
           {user && user.imgPerfilPath ? (
             <img
@@ -77,7 +84,7 @@ function Header() {
           {isOpen ? <FaChevronUp /> : <FaChevronDown />}
         </button>
         {isOpen && (
-          <div className="absolute right-0 mt-2 w-64 bg-white text-gray-800 rounded-lg shadow-lg z-10">
+          <div className="absolute right-0 mt-10 w-64 bg-white text-gray-800 rounded-lg shadow-lg z-10 border">
             <div className="p-4 border-b">
               <p className="font-semibold text-gray-700">
                 ¡Hola, {user ? `${user.nombre} ${user.apellido}` : "Usuario"}!
@@ -99,7 +106,7 @@ function Header() {
                 </Link>
               )}
               <Link
-                to="/learning"
+                to="/my-courses"
                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 hover:rounded-lg"
               >
                 Mi aprendizaje
