@@ -98,12 +98,20 @@ function Header() {
                 Ver mi Perfil
               </Link>
               {user && (user.rolUsuario === 1 || user.rolUsuario === 3) && (
-                <Link
-                  to="/admin/add-course"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 hover:rounded-lg"
-                >
-                  Crear curso
-                </Link>
+                <>
+                  <Link
+                    to="/admin/add-course"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 hover:rounded-lg"
+                  >
+                    Crear curso
+                  </Link>
+                  <Link
+                    to="/admin/add-category"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 hover:rounded-lg"
+                  >
+                    Crear categoria
+                  </Link>
+                </>
               )}
               <Link
                 to="/my-courses"

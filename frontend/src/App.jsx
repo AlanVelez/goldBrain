@@ -19,6 +19,7 @@ import Help from "./pages/Help";
 import VideoPlayer from "./pages/VideoPlayer";
 import MyCourses from "./pages/MyCourses";
 import Courses from "./pages/Courses";
+import CreateCategory from "./pages/CreateCategory";
 
 const App = () => {
   const token = localStorage.getItem("token");
@@ -43,6 +44,7 @@ const App = () => {
         </Route>
         <Route element={<RoleBasedRoute allowedRoles={[1, 3]} />}>
           <Route path="/admin/add-course" element={<AddCourse />} />
+          <Route path="/admin/add-category" element={<CreateCategory />} />
           <Route
             path="/admin/add-course-videos/:idCurso"
             element={<AddCourseVideos />}
