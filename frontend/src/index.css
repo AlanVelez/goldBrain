@@ -1,3 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Para ocultar la barra de desplazamiento horizontal */
+.hide-scrollbar-horizontal {
+  overflow-x: hidden;
+}
+
+/* Para ocultar la barra de desplazamiento vertical */
+.hide-scrollbar-vertical {
+  overflow-y: hidden;
+}
+
+/* Para ocultar ambas barras de desplazamiento */
+.hide-scrollbar {
+  overflow: hidden;
+}
+
+/* Alternativamente, puedes ocultar la barra pero permitir el desplazamiento */
+.scroll-container {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scroll-container::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, and Opera */
+}
+
+.curso:hover .img-curso{
+  transform: scale(1.1);
+  transition: transform 0.5s;
+}
+
+.curso:hover .img-cruso-2{
+  filter: blur(1px);
+}
+
+/* Archivo CSS */
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.breadcrumb a {
+  color: gray;
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb .current {
+  color: #fbbf24; /* Color amarillo personalizado */
+}
+
+.breadcrumb .separator {
+  margin: 0 0.5rem;
+  color: gray;
+}

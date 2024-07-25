@@ -81,15 +81,31 @@ class Video(VideoBase):
     class Config:
         orm_mode = True
 
-class InscripcionCreate(BaseModel):
+class InscripcionBase(BaseModel):
     idCurso: int
     idUsuario: int
 
-class Inscripcion(BaseModel):
+class InscripcionCreate(InscripcionBase):
+    pass
+
+class Inscripcion(InscripcionBase):
     idInscripcion: int
-    idCurso: int
-    idUsuario: int
     fechaInscripcion: date
 
     class Config:
-        from_attributes = True
+        orm_mode = True
+
+class VideoProgressBase(BaseModel):
+    watched: Optional[bool] = False
+    progress: Optional[float] = 0.0
+
+class VideoProgressCreate(VideoProgressBase):
+    pass
+
+class VideoProgress(VideoProgressBase):
+    id: int
+    user_id: int
+    video_id: int
+
+    class Config:
+        orm_mode = True

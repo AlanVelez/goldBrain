@@ -44,7 +44,7 @@ function LoginForm() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white">
-      <h1 className="text-4xl font-bold text-yellow-500 mb-6">GoldBrain</h1>
+      <h1 className="text-4xl font-bold text-yellow-400 mb-6">GoldBrain</h1>
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded">
         {message && <p className="text-red-500">{message}</p>}
 
@@ -57,7 +57,7 @@ function LoginForm() {
             id="email"
             name="email"
             placeholder="ejemplo@ejemplo.com"
-            className="w-full px-3 py-2 border rounded focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
             value={formData.email}
             onChange={handleChange}
             required
@@ -73,7 +73,7 @@ function LoginForm() {
             id="password"
             name="password"
             placeholder="Contraseña"
-            className="w-full px-3 py-2 border rounded focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-400 focus:border-yellow-400"
             value={formData.password}
             onChange={handleChange}
             required
@@ -82,7 +82,7 @@ function LoginForm() {
 
         <button
           type="submit"
-          className="w-full bg-yellow-500 text-white py-2 rounded"
+          className="w-full bg-yellow-400 text-white py-2 rounded-lg hover:bg-yellow-500"
         >
           Iniciar sesión
         </button>

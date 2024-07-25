@@ -114,7 +114,7 @@ def read_categorias(db: Session = Depends(get_db)):
     return categorias
 
 @app.post("/upload/")
-async def upload_file(file: UploadFile = File(...), course_id: int = 0):
+async def upload_file(file: UploadFile = File(...), course_id: int = Form(...), db: Session = Depends(get_db)):
     if course_id == 0:
         raise HTTPException(status_code=400, detail="Invalid course ID")
     
@@ -124,8 +124,11 @@ async def upload_file(file: UploadFile = File(...), course_id: int = 0):
     
     with open(file_location, "wb+") as file_object:
         shutil.copyfileobj(file.file, file_object)
+
+    portada_path = f"/uploads/{standardized_filename}"
+    crud.update_curso_portada(db, course_id, portada_path)
     
-    return {"location": f"/uploads/{standardized_filename}"}
+    return {"location": portada_path}
 
 @app.get("/uploads/{file_path:path}")
 async def get_file(file_path: str):
@@ -146,31 +149,113 @@ def create_curso(curso: schemas.CursoCreate, db: Session = Depends(get_db)):
     return crud.create_curso(db=db, curso=curso)
 
 @app.get("/cursos/", response_model=List[schemas.Curso])
-def read_cursos(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+def read_cursos(skip: int = 0, limit: int = 50, db: Session = Depends(get_db)):
     cursos = crud.get_cursos(db, skip=skip, limit=limit)
     print("Returning courses:", cursos)
     return cursos
 
-@router.post("/inscripciones", response_model=schemas.Inscripcion)
+@app.get("/cursos/{curso_id}", response_model=List[schemas.Curso])
+async def read_course(curso_id: int, db: Session = Depends(get_db)):
+    db_course = crud.get_course(db, curso_id)
+    return db_course
+
+@app.post("/inscripciones", response_model=schemas.Inscripcion)
 async def create_inscripcion(inscripcion: schemas.InscripcionCreate, db: Session = Depends(get_db)):
     db_inscripcion = crud.get_inscripcion_by_course_and_user(db, inscripcion.idCurso, inscripcion.idUsuario)
     if db_inscripcion:
         raise HTTPException(status_code=400, detail="El usuario ya está inscrito en este curso")
     return crud.create_inscripcion(db=db, inscripcion=inscripcion)
 
-# Endpoint para obtener un curso por ID
-@router.get("/cursos/{idCurso}", response_model=schemas.Curso)
-async def read_course(idCurso: int, db: Session = Depends(get_db)):
-    db_course = crud.get_course(db, idCurso=idCurso)
-    if not db_course:
-        raise HTTPException(status_code=404, detail="Curso no encontrado")
-    return db_course
+@app.get("/categorias/{idCategoria}", response_model=schemas.Categoria)
+def read_categoria(idCategoria: int, db: Session = Depends(get_db)):
+    categoria = crud.get_categoria(db, idCategoria)
+    if categoria is None:
+        raise HTTPException(status_code=404, detail="Categoría no encontrada")
+    return categoria
 
-# Endpoint para obtener videos de un curso por ID
-@router.get("/videos/{idCurso}", response_model=List[schemas.Video])
-async def read_videos(idCurso: int, db: Session = Depends(get_db)):
-    videos = crud.get_videos_by_curso(db, idCurso=idCurso)
-    return videos
+@app.post("/videos/{video_id}/watched")
+def mark_video_as_watched(video_id: int, db: Session = Depends(get_db)):
+    db_video = db.query(models.Video).filter(models.Video.idVideo == video_id).first()
+    if db_video is None:
+        raise HTTPException(status_code=404, detail="Video not found")
+    db_video.watched = True
+    db.commit()
+    db.refresh(db_video)
+    return {"message": "Video marked as watched"}
+
+@app.post("/video-progress/", response_model=schemas.VideoProgress)
+def create_video_progress(progress: schemas.VideoProgressCreate, db: Session = Depends(get_db)):
+    return crud.create_video_progress(db, progress)
+
+@app.get("/video-progress/{user_id}/{video_id}", response_model=schemas.VideoProgress)
+def read_video_progress(user_id: int, video_id: int, db: Session = Depends(get_db)):
+    db_progress = crud.get_video_progress(db, user_id, video_id)
+    if db_progress is None:
+        raise HTTPException(status_code=404, detail="Progress not found")
+    return db_progress
+
+@app.put("/video-progress/{user_id}/{video_id}", response_model=schemas.VideoProgress)
+def update_video_progress(user_id: int, video_id: int, progress: schemas.VideoProgressCreate, db: Session = Depends(get_db)):
+    return crud.update_video_progress(db, user_id, video_id, progress)
+
+@app.get("/video-progress/user/{user_id}/course/{course_id}", response_model=List[schemas.VideoProgress])
+def get_video_progress_for_course(user_id: int, course_id: int, db: Session = Depends(get_db)):
+    return db.query(models.VideoProgress).join(models.Video).filter(
+        models.VideoProgress.user_id == user_id,
+        models.Video.idCurso == course_id
+    ).all()
+
+# main.py
+
+@app.get("/inscripciones/{user_id}/{course_id}", response_model=schemas.Inscripcion)
+def read_inscripcion(user_id: int, course_id: int, db: Session = Depends(get_db)):
+    inscripcion = crud.get_inscripcion_by_course_and_user(db, user_id, course_id)
+    if not inscripcion:
+        raise HTTPException(status_code=404, detail="Inscripción no encontrada")
+    return inscripcion
+
+@app.get("/enrollments/{user_id}/{course_id}", response_model=schemas.Inscripcion)
+def read_inscripcion(user_id: int, course_id: int, db: Session = Depends(get_db)):
+    inscripcion = crud.get_inscripcion_by_course_and_user(db, user_id, course_id)
+    if not inscripcion:
+        raise HTTPException(status_code=404, detail="Inscripción no encontrada")
+    return inscripcion
+
+@app.post("/enrollments/", response_model=schemas.Inscripcion)
+async def create_inscripcion(inscripcion: schemas.InscripcionCreate, db: Session = Depends(get_db)):
+    db_inscripcion = crud.get_inscripcion_by_course_and_user(db, inscripcion.idUsuario, inscripcion.idCurso)
+    if db_inscripcion:
+        raise HTTPException(status_code=400, detail="El usuario ya está inscrito en este curso")
+    return crud.create_inscripcion(db=db, inscripcion=inscripcion)
+
+# En main.py
+@app.get("/users/{user_id}/recommended_courses", response_model=List[schemas.Curso])
+def read_recommended_courses(user_id: int, db: Session = Depends(get_db)):
+    courses = crud.get_recommended_courses(db, user_id)
+    return courses
+
+@app.get("/users/{user_id}/enrollments", response_model=List[schemas.Curso])
+def get_user_enrollments(user_id: int, db: Session = Depends(get_db)):
+    user_courses = crud.get_courses_by_user(db, user_id)
+    return user_courses
+
+@app.get("/users/{user_id}/last-unwatched-videos", response_model=List[schemas.Video])
+def get_last_unwatched_videos(user_id: int, db: Session = Depends(get_db)):
+    user_courses = crud.get_user_courses(db, user_id)
+    if not user_courses:
+        raise HTTPException(status_code=404, detail="User not enrolled in any course")
+    
+    unwatched_videos = []
+    for course in user_courses:
+        unwatched_video = crud.get_last_unwatched_video(db, user_id, course.idCurso)
+        if unwatched_video:
+            unwatched_videos.append(unwatched_video)
+    
+    if not unwatched_videos:
+        raise HTTPException(status_code=404, detail="No unwatched videos found")
+    
+    return unwatched_videos
+
 
 if __name__ == "__main__":
     uvicorn.run("backend.app.main:app", host="0.0.0.0", port=8000, reload=True)
